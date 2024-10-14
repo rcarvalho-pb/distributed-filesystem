@@ -21,6 +21,7 @@ type TCPTransportOpts struct {
 type TCPTransport struct {
 	TCPTransportOpts
 	listener net.Listener
+	rpcChan  chan RPC
 
 	mu    sync.Mutex
 	peers map[net.Addr]Peer
@@ -33,14 +34,16 @@ func NewTCPPeer(conn net.Conn, outbound bool) *TCPPeer {
 	}
 }
 
-func (t *TCPTransport) GetListenAddress() string {
-	return t.ListenAddress
-}
-
 func NewTCPTransport(opts TCPTransportOpts) TCPTransport {
 	return TCPTransport{
 		TCPTransportOpts: opts,
+		rpcChan:          make(chan RPC),
 	}
+}
+
+// implemets the transport interface
+func (t *TCPTransport) Consume() <-chan RPC {
+	return t.rpcChan
 }
 
 func (t *TCPTransport) ListenAndAccept() error {
@@ -76,14 +79,16 @@ func (t *TCPTransport) handleConn(conn net.Conn) {
 		return
 	}
 
-	msg := &Message{}
+	rpc := &RPC{}
 
 	for {
-		if err := t.Decoder.Decode(conn, msg); err != nil {
+		if err := t.Decoder.Decode(conn, rpc); err != nil {
 			fmt.Printf("new incoming connection: %+v\n", conn)
 			continue
 		}
 
-		fmt.Printf("message: %+v\n", msg)
+		rpc.From = conn.RemoteAddr()
+
+		fmt.Printf("message: %+v\n", rpc)
 	}
 }

@@ -11,12 +11,12 @@ func TestTCPTransport(t *testing.T) {
 	tcpOpts := TCPTransportOpts{
 		ListenAddress: ":3000",
 		Handshaker:    NOOPHandshakeFunc,
-		// Decoder: ,
+		Decoder:       DefaultDecoder{},
 	}
 
 	tr := NewTCPTransport(tcpOpts)
 
-	assert.Equal(t, tcpOpts.ListenAddress, tr.GetListenAddress())
+	assert.Equal(t, tr.ListenAddress, ":3000")
 
 	assert.Nil(t, tr.ListenAndAccept())
 }
