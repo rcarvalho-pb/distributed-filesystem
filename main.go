@@ -9,7 +9,6 @@ import (
 
 func OnPeer(peer p2p.Peer) error {
 	fmt.Printf("doing some logic here\n")
-	peer.Close()
 	return nil
 }
 
